@@ -1,0 +1,36 @@
+1、创建20个用户。
+#!/bin/bash
+for i in {40..60}
+do
+ useradd user$i      2>>2.txt                       //将错误的输出加入到2.txt
+echo "123" |passwd --stdin user$i   >>/dev/null     //将正确的输出放到/dev/null
+done &
+
+2、为主机设置默认YUM仓库并装包。
+#!/bin/bash
+s=/etc/yum.repos.d
+rm -rf $s/*    2>>1.txt
+echo '[development]
+name= this is rhel7
+baseurl=http://192.168.4.254/rh7dvd
+enabled=1
+gpgcheck=0' >$s/rhel7.repo   2>>1.txt
+yum clean all    >>2.txt
+echo "仓库中的软件数量有："
+yum repolist  |tail -1
+
+yum -y install vsftpd        2>>1.txt >>2.txt
+systemctl restart vsftpd
+systemctl enable vsftpd
+
+3、用read交互式方式创建用户。
+#!/bin/bash
+read -p "请输入您要创建的用户名：" name
+useradd $name  >/dev/null
+read -p "请输入您想设置的密码：" pass
+stty -echo                                   #关闭终端输出，这样别人就看不到用户输入的秘密了。
+echo $pass |passwd --stdin $name >/dev/null
+echo "用户$name创建成功。"  
+stty echo                                    #开启终端输出。                              
+
+
